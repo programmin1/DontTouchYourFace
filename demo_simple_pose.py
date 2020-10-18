@@ -44,6 +44,13 @@ detector.reset_class(["person"], reuse_weights=['person'])
 im_fname = utils.download('https://github.com/dmlc/web-data/blob/master/' +
                           'gluoncv/pose/soccer.png?raw=true',
                           path='soccer.png')
+#im_fname = utils.download('https://m.media-amazon.com/images/M/MV5BMzFkM2YwOTQtYzk2Mi00N2VlLWE3NTItN2YwNDg1YmY0ZDNmXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_UX182_CR0,0,182,268_AL_.jpg',
+#   path="face.jpg")
+#im_fname = utils.download('https://images.pexels.com/photos/5217670/pexels-photo-5217670.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260',
+#   path="facehand.jpg")
+#im_fname = utils.download('https://images.pexels.com/photos/4445631/pexels-photo-4445631.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260',
+#    path="facehandlower.jpg")
+#im_fname = "what.jpg"
 x, img = data.transforms.presets.ssd.load_test(im_fname, short=512)
 print('Shape of pre-processed image:', x.shape)
 
@@ -78,25 +85,28 @@ predicted_heatmap = pose_net(pose_input)
 pred_coords, confidence = heatmap_to_coord(predicted_heatmap, upscale_bbox)
 
 def dist(np1, np2):
-	print(np1)
-	print(np2)
-	#HOW do you get a SIMPLE NUMBER result? alsways [number] array
-	print('dist %s' % ((np.sum(np.linalg.norm(np1-np2))).tolist(),))
-	return np.linalg.norm(np1-np2).item(0)
+	#print(np1)
+	#print(np2)
+	#print('type')
+	#a mess, this is a ndarray. item get item as numpy, float: https://gluon.mxnet.io/chapter01_crashcourse/ndarray.html#Slicing
+	#print(type(np.linalg.norm(np1-np2).item().asnumpy().item()))
+	#HOW do you get a SIMPLE NUMBER result? asnumpy() is normal numpy array you can get the item():
+	#print('dist %s' % (np.linalg.norm(np1-np2).item().asnumpy().item(),))
+	return np.linalg.norm(np1-np2).item().asnumpy().item()
 
 for person in (pred_coords):
-	#print( person )
+	print( person )
 	#print(person[0])
 	hand1 = person[9][0]
 	hand2 = person[10]
 	leg1 = person[15]
 	leg2 = person[16]
-	print('feet:')
-	print(leg1)
-	print(leg2)
-	print('hands:')
-	print(hand1)
-	print(hand2)
+	#print('feet:')
+	#print(leg1)
+	#print(leg2)
+	#print('hands:')
+	#print(hand1)
+	#print(hand2)
 	#rough size of head.
 	head1 = person[0]
 	headdist = dist(head1,person[1])
@@ -107,13 +117,16 @@ for person in (pred_coords):
 	print('headdist about %s' % (headdist,))
 	#Is hand anywhere near head points - within one head distance in pixels, near any head point?
 	close = False
+	THRESHOLD = 2 # relative distance to consider it touching, within.
 	for i in range(4):
-		if dist(hand1,person[i]) < headdist*2:
+		#print('handdist %s' % (dist(hand1,person[i]),) )
+		#print('handdist %s' % (dist(hand2,person[i]),) )
+		if dist(hand1,person[i]) < headdist*THRESHOLD:
 			close = True
-		if dist(hand2,person[i]) < headdist*2:
+		if dist(hand2,person[i]) < headdist*THRESHOLD:
 			close = True
 	if close:
-		print("Person touching face")
+		print("Person touching face DONT TOUCH YOUR FACE")
 	else:
 		print("Person not touching face")
 
